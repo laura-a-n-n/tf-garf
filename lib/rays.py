@@ -23,12 +23,7 @@ def get_rays(dirs, c2w):
 def get_scene_rays(H, W, focal, c2w):
     '''Get ray origins, directions from a pinhole camera.'''
     dirs = get_local_rays(H, W, focal)
-    
-    rays_d = tf.reduce_sum(dirs[..., np.newaxis, :] * c2w[:3, :3], -1)
-    rays_o = tf.broadcast_to(c2w[:3, -1], tf.shape(rays_d))
-    
-    # normalize
-    rays_d = tf.linalg.normalize(rays_d, axis=-1)[0]
+    rays_o, rays_d = get_rays(dirs, c2w)
     
     return rays_o, rays_d
 

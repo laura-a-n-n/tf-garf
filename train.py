@@ -8,9 +8,6 @@ from model.loss import generalized_mean_norm
 
 from IPython.display import clear_output
 
-# model = GaussianRadianceField()
-# model.compile()
-
 def cond_clear(notebook):
     if notebook:
         clear_output(wait=True)
