@@ -30,7 +30,6 @@ Once you have the data, you can create a model object.
 
 ```python
 from model.garf import GaussianRadianceField
-
 model = GaussianRadianceField(data, num_samples=128)
 ```
 
