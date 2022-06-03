@@ -2,6 +2,8 @@
 
 An unofficial implementation of Gaussian Activated Radiance Fields in TensorFlow 2.
 
+Original paper by Chng et al. (2022): [[arXiv]](https://arxiv.org/abs/2204.05735) [[webpage]](https://sfchng.github.io/garf/)
+
 See the [notebook](/garf.ipynb) for more info.
 
 ## Data
