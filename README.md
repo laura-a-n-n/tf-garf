@@ -40,4 +40,4 @@ You can load the pre-trained model for the NeRF `flower` dataset. Pass `opt=True
 model.load('pretrain/flowers', opt=False)
 ````
 
-Render a view from a specific image index or pose with [`model.garf.GaussianRadianceField.render`](https://github.com/laura-a-n-n/tf-garf/blob/main/model/garf.py#L160).)
+Render a view from a specific image index or pose with [`model.garf.GaussianRadianceField.render`](https://github.com/laura-a-n-n/tf-garf/blob/main/model/garf.py#L160).
