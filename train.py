@@ -29,7 +29,7 @@ def train_step(model, batch_size):
     return loss
 
 def train(model, epochs, batch_size=64, model_name='saved_model', init_epoch=0,
-          val=True, val_idx='rand', val_steps=50, chk_steps=10000,
+          val=True, val_idx='rand', val_steps=300, chk_steps=10000,
           notebook=True, save=False, out_path='out.png', overwrite=False,
           spiral_n_steps=60, spiral_axes=None, spiral_depth=1.2):
     val_type = val_idx
@@ -59,6 +59,7 @@ def train(model, epochs, batch_size=64, model_name='saved_model', init_epoch=0,
             else:
                 rendered_img = model.render(0, pose=poses_all[epoch // val_steps])
 
+            plt.axis('off')
             plt.imshow(rendered_img)
 
             if not save:
@@ -72,8 +73,9 @@ def train(model, epochs, batch_size=64, model_name='saved_model', init_epoch=0,
                     N = len(str(epochs))
                     name = list('0' * N)
                     name[-len(str(epoch)):N] = str(epoch)
+                    name = out_path[:-4] + (''.join(name)) + out_path[-4:]
                     
-                    plt.savefig(out_path[:-4] + (''.join(name)) + out_path[-4:])
+                    plt.imsave(name, np.array(rendered_img))
                 
                 plt.show() # clear mem
             
