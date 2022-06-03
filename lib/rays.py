@@ -1,6 +1,9 @@
 import tensorflow as tf
 import numpy as np
 
+def normalize(x):
+    return x / np.linalg.norm(x)
+
 def get_local_rays(H, W, focal):
     '''Get camera space rays from a pinhole camera, to be transformed to world space.'''
     i, j = tf.meshgrid(tf.range(W, dtype=tf.float32),
@@ -34,7 +37,7 @@ def get_coords(r_o, r_d, num_samples, near=2., far=6.):
 
     return coords, t
 
-def create_spiral_poses(radii, focus_depth, n_poses=10):
+def create_spiral_poses(radii, focus_depth, n_poses=10, n_circ=2):
     """
     Computes poses that follow a spiral path for rendering purpose.
     See https://github.com/Fyusion/LLFF/issues/19
@@ -49,7 +52,7 @@ def create_spiral_poses(radii, focus_depth, n_poses=10):
     """
 
     poses_spiral = []
-    for t in np.linspace(0, 4*np.pi, n_poses+1)[:-1]: # rotate 4pi (2 rounds)
+    for t in np.linspace(0, n_circ*2*np.pi, n_poses+1, endpoint=False): # rotate 4pi (2 rounds)
         # the parametric function of the spiral (see the interactive web)
         center = np.array([np.cos(t), -np.sin(t), -np.sin(0.5*t)]) * radii
 

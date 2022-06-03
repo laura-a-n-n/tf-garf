@@ -20,7 +20,6 @@ class GaussianRadianceField(tf.keras.Model):
         self.hwf = [int(hwf[0]), int(hwf[1]), hwf[2]]
         self.num_samples = num_samples
         self.f_cam_rays = data['f_cam_rays']
-        self.f_img_rgb = data['f_img_rgb']
 
         self.sequence = []
         self.lie = Lie()
@@ -60,7 +59,7 @@ class GaussianRadianceField(tf.keras.Model):
 
         if opt:
             opt_path = os.path.join(path, 'opt.npy')
-            p_opt_path = os.path.join(path, 'pose-opy.npy')
+            p_opt_path = os.path.join(path, 'pose-opt.npy')
 
             opt_state = self.optimizer.get_weights()
             p_opt_state = self.pose_optimizer.get_weights()
@@ -82,15 +81,16 @@ class GaussianRadianceField(tf.keras.Model):
 
         if opt:
             opt_path = os.path.join(path, 'opt.npy')
-            p_opt_path = os.path.join(path, 'pose-opy.npy')
+            p_opt_path = os.path.join(path, 'pose-opt.npy')
             opt_state = np.load(opt_path, allow_pickle=True)
             p_opt_state = np.load(p_opt_path, allow_pickle=True)
 
             from train import train
+            self.compile()
 
-            tf.print(f'Training for {iters} iteration(s) to initialize optimizer state.')
+            print(f'Training for {iters} iteration(s) to initialize optimizer state.')
             train(self, iters, val_idx='rand')
-            tf.print('Loading optimizer state...')
+            print('Loading optimizer state...')
 
             self.optimizer.set_weights(opt_state)
             self.pose_optimizer.set_weights(p_opt_state)
@@ -102,7 +102,7 @@ class GaussianRadianceField(tf.keras.Model):
         self.load_weights(param_path)
         self.pose = tf.Variable(pose)
 
-        tf.print(f'Model loaded to {path}')
+        tf.print(f'Model loaded from {path}')
 
     def sample_rays(self, n, batch_size):
         '''Sample data from the first n images of a certain batch size.'''
@@ -111,10 +111,11 @@ class GaussianRadianceField(tf.keras.Model):
         
         app_idx = tf.range(n, dtype=tf.int32)[:, tf.newaxis]
         app_idx = tf.broadcast_to(app_idx, (n, batch_size))
-        
         rgb_idx = tf.reshape(tf.stack([app_idx, idx], axis=-1), [-1, 2])
         
-        return tf.gather(self.f_cam_rays, idx), tf.gather_nd(self.f_img_rgb, rgb_idx)
+        f_img_rgb = tf.reshape(self.img_rgb, [self.num_img, -1, 3])
+        
+        return tf.gather(self.f_cam_rays, idx), tf.gather_nd(f_img_rgb, rgb_idx)
 
     def get_slice(self, batch_size, n=-1):
         '''Get a batch.'''
@@ -156,21 +157,29 @@ class GaussianRadianceField(tf.keras.Model):
         
         return self.process_raw(self(model_in), t)
 
-    def render(self, img_number):
-        tf.print(f'Rendering image index {img_number}')
+    def render(self, img_number=0, pose=None, batch_size=4096, out_rgb=True):
+        message = pose is None and f'image index {img_number}' or 'posed image'
+        tf.print(f'Rendering {message}')
         
-        pose = self.get_pose()[img_number]
+        if pose is None:
+            pose = self.get_pose()[img_number]
+        
         rgb = self.img_rgb[img_number]
         r_o, r_d = get_scene_rays(*self.hwf, pose)
 
         raw_dataset = tf.data.Dataset.from_tensor_slices(tf.reshape(tf.stack([rgb, r_o, r_d], axis=2), [-1, 3, 3]))
-        dataset = raw_dataset.batch(4096)
+        dataset = raw_dataset.batch(batch_size)
         
         rendered_img = []
         for batch in dataset:
             pred_rgb, depth, acc = self.batch(batch)
-            rendered_img.append(pred_rgb)
+            
+            if out_rgb:
+                rendered_img.append(pred_rgb)
+            else:
+                rendered_img.append(depth)
 
-        rendered_img = tf.reshape(tf.concat(rendered_img, axis=0), rgb.shape)
+        r_shape = out_rgb and rgb.shape or rgb.shape[:2]
+        rendered_img = tf.reshape(tf.concat(rendered_img, axis=0), r_shape)
         
         return rendered_img
