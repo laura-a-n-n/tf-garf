@@ -6,6 +6,8 @@ Original paper by Chng et al. (2022): [[arXiv]](https://arxiv.org/abs/2204.05735
 
 See the [notebook](/garf.ipynb) for more info.
 
+### Now that the [official code](https://github.com/sfchng/Gaussian-Activated-Radiance-Fields) is available in PyTorch, you'll probably want to use that code instead!
+
 ## Data
 
 This implementation expects LLFF-style, forward-facing data, such as the [NeRF LLFF dataset](https://drive.google.com/drive/folders/14boI-o5hGO9srnWaaogTU5_ji7wkX2S7).
